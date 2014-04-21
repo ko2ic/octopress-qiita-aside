@@ -1,0 +1,51 @@
+{% if site.qiita_user %}
+<section>
+{% if site.qiita_popular %}
+<h1>Qiita 人気の投稿</h1>
+{% else %}
+<h1>Qiita 最近の投稿</h1>
+{% endif %}
+<ul id="qiita_post" class="post">
+</ul>
+  <script type="text/javascript">
+    $(document).ready(function(){
+{% if site.qiita_popular %}
+        var url = "https://qiita.com/api/v1/users/{{site.qiita_user}}/items"
+{% else %}
+        var url= "https://qiita.com/api/v1/users/{{site.qiita_user}}/items?per_page={{site.qiita_display_count}}"
+{% endif %}
+        $.getJSON(url, function(response){
+{% if site.qiita_popular %}
+        response.sort(function(a, b){
+          a = a.stock_count;
+          b = b.stock_count;
+          return b - a;
+        });
+{% endif %}
+        for(var i = 0; i < response.length ; i++){
+          var data = response[i];
+          var aTag = $("<a/>").text(data.title).attr("href",data.url);
+
+          var iStockTag = $("<i/>").css({"color":"#000","margin-right":"1em"}).attr("class","fa fa-folder-o");
+          iStockTag.append("  " + data.stock_count);
+          
+          var iCommentTag = $("<i/>").css({"color":"#000"}).attr("class","fa fa-folder-o");
+          iCommentTag.append("  " + data.comment_count);
+
+          var pTag = $("<p/>");
+          pTag.append(iStockTag);
+          pTag.append(iCommentTag);
+
+          var liTag = $("<li/>").attr("class","post").attr("data-qiita-stock",data.stock_count).append(aTag).append(pTag);
+          $("#qiita_post").append(liTag);
+{% if site.qiita_popular %}
+          if(i === {{site.qiita_display_count}} - 1){
+            break;
+          }
+{% endif %}
+        }
+      });
+    });
+  </script>
+</section>
+{% endif %}
